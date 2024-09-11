@@ -1,4 +1,4 @@
- name: Push to PWS
+name: Push to PWS
 
 on:
   push:
