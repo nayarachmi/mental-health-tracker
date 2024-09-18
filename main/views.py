@@ -9,6 +9,9 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+import datetime
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 @login_required(login_url='/login')
 def show_main(request):
@@ -17,7 +20,8 @@ def show_main(request):
         'npm' : '2306230685',
         'name': 'Naya Kusumahayati Rachmi',
         'class': 'PBP B',
-        'mood_entries': mood_entries
+        'mood_entries': mood_entries,
+        'last_login': request.COOKIES['last_login'],
     }
 
     return render(request, "main.html", context)
@@ -65,9 +69,11 @@ def login_user(request):
       form = AuthenticationForm(data=request.POST)
 
       if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect('main:show_main')
+        user = form.get_user()
+        login(request, user)
+        response = HttpResponseRedirect(reverse("main:show_main"))
+        response.set_cookie('last_login', str(datetime.datetime.now()))
+        return response
 
    else:
       form = AuthenticationForm(request)
@@ -76,4 +82,6 @@ def login_user(request):
 
 def logout_user(request):
     logout(request)
-    return redirect('main:login')
+    response = HttpResponseRedirect(reverse('main:login'))
+    response.delete_cookie('last_login')
+    return response
